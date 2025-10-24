@@ -1,7 +1,11 @@
+using Employee_Management_System.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IDataRepository, DataRepository>();
 
 var app = builder.Build();
 
