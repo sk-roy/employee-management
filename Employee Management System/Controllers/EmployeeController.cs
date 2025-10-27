@@ -1,6 +1,12 @@
-﻿using Employee_Management_System.Services;
+﻿using Employee_Management_System.Models;
+using Employee_Management_System.Models.ViewModels;
+using Employee_Management_System.Services;
+using Employee_Management_System.Utilities;
+using Employee_Management_System.Utilities.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Employee_Management_System.Controllers
 {
@@ -21,72 +27,157 @@ namespace Employee_Management_System.Controllers
         }
 
         // GET: EmployeeController/Details/5
-        public ActionResult Details(int id)
+        public async Task<ActionResult> Details(int id)
         {
-            return View();
+            var employee = await _repository.GetEmployeeByIdAsync(id);
+            return View(employee);
         }
 
         // GET: EmployeeController/Create
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
-            return View();
+            var viewModel = await PrepareEmployeeViewModel();
+
+            return View(viewModel);
         }
 
-        // POST: EmployeeController/Create
+        private async Task<EmployeeViewModel> PrepareEmployeeViewModel()
+        {
+            var departments = await _repository.GetAllDepartmentsAsync();
+            var managers = await _repository.GetManagersAsync();
+
+            return new EmployeeViewModel
+            {
+                DepartmentList = departments.Select(d => new SelectListItem
+                {
+                    Value = d.DepartmentId.ToString(),
+                    Text = d.Name
+                }),
+
+                ManagerList = managers.Select(e => new SelectListItem
+                {
+                    Value = e.EmployeeId.ToString(),
+                    Text = $"{e.FirstName} {e.LastName}"
+                })
+            };
+        }
+
+        // POST: Employee/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Create(EmployeeViewModel viewModel)
         {
-            try
+            if (ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    Employee model = viewModel.ToEmployeeModel();
+
+                    int newId = await _repository.AddEmployeeAsync(model);
+                    if (newId == -1)
+                    {
+                        var newViewModel = await PrepareEmployeeViewModel();
+                        ModelState.AddModelError("Email", "The email address is already used.");
+
+                        return View(newViewModel);
+                    }
+                    else if (newId > 0)
+                    {
+                        return RedirectToAction(nameof(Details), new { id = newId });
+                    }
+                }
+                catch (BudgetExceededException ex)
+                {
+                    var newViewModel = await PrepareEmployeeViewModel();
+                    ModelState.AddModelError("", ex.Message);
+                    return View(newViewModel);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Failed to create employee: " + ex.Message);
+                }
             }
-            catch
-            {
-                return View();
-            }
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: EmployeeController/Edit/5
-        public ActionResult Edit(int id)
+        // --- Helper to Load Dropdowns ---
+        private async Task<(IEnumerable<SelectListItem> Depts, IEnumerable<SelectListItem> Mgrs)> LoadLookupsAsync()
         {
-            return View();
+            var departments = await _repository.GetAllDepartmentsAsync();
+            var managers = await _repository.GetManagersAsync();
+
+            var deptList = departments.Select(d => new SelectListItem(d.Name, d.DepartmentId.ToString()));
+            var mgrList = managers.Select(m => new SelectListItem(m.FullName, m.ManagerId.ToString()));
+
+            return (deptList, mgrList);
         }
 
-        // POST: EmployeeController/Edit/5
+        // GET: Employee/Edit/5
+        public async Task<IActionResult> Edit(int id)
+        {
+            var employee = await _repository.GetEmployeeByIdAsync(id);
+            if (employee == null) return NotFound();
+
+            var lookups = await LoadLookupsAsync();
+
+            employee.DepartmentList = lookups.Depts;
+            employee.ManagerList = lookups.Mgrs;
+
+            return View(employee);
+        }
+
+        // POST: Employee/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Edit(int id, EmployeeViewModel model)
         {
-            try
+            if (id != model.EmployeeId) return NotFound();
+
+            if (ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    bool success = await _repository.UpdateEmployeeAsync(model);
+                    if (success) return RedirectToAction(nameof(Index));
+                    ModelState.AddModelError("", "Update failed. Employee ID not found.");
+                }
+                catch (BudgetExceededException ex)
+                {
+                    var newViewModel = await PrepareEmployeeViewModel();
+                    ModelState.AddModelError("", ex.Message);
+                    return View(newViewModel);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "An unexpected error occurred during save: " + ex.Message);
+                }
             }
-            catch
-            {
-                return View();
-            }
+
+            return View(model);
         }
 
-        // GET: EmployeeController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: EmployeeController/Delete/5
+        // POST: Employee/Deactivate/5 (Action to set IsActive=false)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<IActionResult> Deactivate(int id)
         {
-            try
+            bool success = await _repository.DeactivateEmployeeAsync(id);
+            if (success)
             {
-                return RedirectToAction(nameof(Index));
+                TempData["Message"] = $"Employee ID {id} has been deactivated.";
             }
-            catch
+            else
             {
-                return View();
+                TempData["Error"] = $"Deactivation failed for Employee ID {id}.";
             }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: Employee/ListByDepartment/5
+        public async Task<IActionResult> ListByDepartment(int departmentId)
+        {
+            var employees = await _repository.GetEmployeesByDepartmentAsync(departmentId);
+            return View("Index", employees);
         }
     }
 }

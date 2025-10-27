@@ -1,0 +1,60 @@
+﻿@using Employee_Management_System.Models.ViewModels
+@model EmployeeViewModel
+
+@{
+    ViewData["Title"] = "Employee Details";
+}
+
+<h1>@Model.FirstName @Model.LastName</h1>
+<hr />
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-3">Employee ID</dt>
+        <dd class="col-sm-9">@Model.EmployeeId</dd>
+
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@Model.Email</dd>
+
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge @(Model.IsActive ? "bg-success" : "bg-danger")">
+                @(Model.IsActive ? "Active" : "Inactive")
+            </span>
+        </dd>
+
+        <dt class="col-sm-3">Management Status</dt>
+        <dd class="col-sm-9">
+            <span class="badge @(Model.IsManager ? "bg-success" : "bg-secondary")">
+                @(Model.IsManager ? "Is a Manager" : "Not a Manager")
+            </span>
+        </dd>
+
+        <dt class="col-sm-3">Hire Date</dt>
+        <dd class="col-sm-9">@Model.HireDate.ToShortDateString()</dd>
+
+        <dt class="col-sm-3">Salary</dt>
+        <dd class="col-sm-9">@Model.Salary.ToString("C")</dd>
+
+        <dt class="col-sm-3">Department</dt>
+        <dd class="col-sm-9">@Model.DepartmentName</dd>
+
+        <dt class="col-sm-3">Manager</dt>
+        <dd class="col-sm-9">
+            @(Model.ManagerName != null ? Model.ManagerName : "N/A")
+        </dd>
+    </dl>
+</div>
+<div class="mt-4">
+    <a asp-action="Edit" asp-route-id="@Model.EmployeeId" class="btn btn-warning">Edit</a>
+
+    @if (Model.IsActive)
+    {
+        <form asp-action="Deactivate" asp-route-id="@Model.EmployeeId" method="post" class="d-inline">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Confirm deactivation for this employee?');">
+                Deactivate Employee
+            </button>
+        </form>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

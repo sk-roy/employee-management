@@ -1,15 +1,17 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-
-@using Employee_Management_System.Models
+﻿@using Employee_Management_System.Models.ViewModels
 @model IEnumerable<EmployeeViewModel>
 
-<h2>Employee List</h2>
+@{
+    ViewData["Title"] = "Employee List";
+}
 
-<table class="table">
+<div class="d-flex justify-content-between align-items-center header-row mb-3">
+    <h2>@ViewData["Title"]</h2>
+    <a asp-action="Create" class="btn btn-success">Create New</a>
+</div>
+<hr />
+
+<table class="table table-striped">
     <thead>
         <tr>
             <th>First Name</th>
@@ -18,6 +20,8 @@
             <th>Hire Date</th>
             <th>Salary</th>
             <th>Department</th>
+            <th>Status</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -29,7 +33,21 @@
                 <td>@Html.DisplayFor(modelItem => item.Email)</td>
                 <td>@Html.DisplayFor(modelItem => item.HireDate)</td>
                 <td>@Html.DisplayFor(modelItem => item.Salary)</td>
-                <td>@Html.DisplayFor(modelItem => item.Department.DepartmentName)</td>
+                <td>@Html.DisplayFor(modelItem => item.DepartmentName)</td>
+                <td>
+                    <dd class="col-sm-9">
+                        <span class="badge @(item.IsActive ? "bg-success" : "bg-danger")">
+                            @(item.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </dd>
+                </td>
+                <td>
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-info">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-info">Details</a>
+                        @* <a asp-action="Delete" asp-route-id="@item.EmployeeId" btn btn-danger>Delete</a> *@
+                    </div>
+                </td>
             </tr>
         }
     </tbody>
