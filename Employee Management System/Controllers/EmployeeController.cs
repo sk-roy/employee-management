@@ -31,6 +31,7 @@ namespace Employee_Management_System.Controllers
         {
             var employee = await _repository.GetEmployeeByIdAsync(id);
             employee.DirectReports = await _repository.GetDirectReportsAsync(id);
+            employee.AllReports = await _repository.GetAllReportsAsync(id);
             
             return View(employee);
         }

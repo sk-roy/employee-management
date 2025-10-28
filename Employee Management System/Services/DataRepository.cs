@@ -240,6 +240,18 @@ namespace Employee_Management_System.Services
                 commandType: CommandType.StoredProcedure
             );
         }
+        public async Task<IEnumerable<Employee>> GetAllReportsAsync(int managerId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@EmployeeId", managerId);
+
+            return await connection.QueryAsync<Employee>(
+                "dbo.SP_GetAllReports",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
 
 
         // --- Department CRUD Implementations ---

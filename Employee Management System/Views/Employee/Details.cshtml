@@ -100,6 +100,48 @@ else
 
 <hr />
 
+
+<h3>Indirect Reports (@Model.AllReports.Count())</h3>
+
+@if (Model.AllReports.Any())
+{
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.AllReports)
+            {
+                <tr>
+                    <td>@item.FirstName @item.LastName</td>
+                    <td>@item.Email</td>
+                    <td>
+                        <dd class="col-sm-9">
+                            <span class="badge @(item.IsActive ? "bg-success" : "bg-danger")">
+                                @(item.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </dd>
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.EmployeeId" class="btn btn-sm btn-outline-info">View Report</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>This employee currently has no indirect reports.</p>
+}
+
+<hr />
+
 <div class="mt-4">
     <a asp-action="Edit" asp-route-id="@Model.EmployeeId" class="btn btn-warning">Edit</a>
 

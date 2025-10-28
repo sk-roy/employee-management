@@ -29,6 +29,7 @@ namespace Employee_Management_System.Models
         public int? DepartmentId { get; set; }
         
         public int? ManagerId { get; set; }
+        public string? FullManagerChain { get; set; }
 
     }
 }

@@ -15,6 +15,7 @@ namespace Employee_Management_System.Services
         Task<IEnumerable<Employee>> GetAllManagersAsync();
         Task<IEnumerable<Employee>> GetManagersByHierarchyAsync(int HierarchyLevel);
         Task<IEnumerable<Employee>> GetDirectReportsAsync(int managerId);
+        Task<IEnumerable<Employee>> GetAllReportsAsync(int managerId);
 
         Task<IEnumerable<Department>> GetAllDepartmentsAsync();
         Task<Department> GetDepartmentByIdAsync(int id);
