@@ -30,6 +30,8 @@ namespace Employee_Management_System.Controllers
         public async Task<ActionResult> Details(int id)
         {
             var employee = await _repository.GetEmployeeByIdAsync(id);
+            employee.DirectReports = await _repository.GetDirectReportsAsync(id);
+            
             return View(employee);
         }
 
@@ -44,7 +46,7 @@ namespace Employee_Management_System.Controllers
         private async Task<EmployeeViewModel> PrepareEmployeeViewModel()
         {
             var departments = await _repository.GetAllDepartmentsAsync();
-            var managers = await _repository.GetManagersAsync();
+            var managers = await _repository.GetAllManagersAsync();
 
             return new EmployeeViewModel
             {
@@ -71,6 +73,14 @@ namespace Employee_Management_System.Controllers
             {
                 try
                 {
+                    if (viewModel.ManagerId == null && !viewModel.IsManager)
+                    {
+                        var newViewModel = await PrepareEmployeeViewModel();
+                        ModelState.AddModelError("ManagerId", "Select a manager or set as a manager.");
+
+                        return View(newViewModel);
+                    }
+
                     Employee model = viewModel.ToEmployeeModel();
 
                     int newId = await _repository.AddEmployeeAsync(model);
@@ -101,10 +111,10 @@ namespace Employee_Management_System.Controllers
         }
 
         // --- Helper to Load Dropdowns ---
-        private async Task<(IEnumerable<SelectListItem> Depts, IEnumerable<SelectListItem> Mgrs)> LoadLookupsAsync()
+        private async Task<(IEnumerable<SelectListItem> Depts, IEnumerable<SelectListItem> Mgrs)> LoadLookupsAsync(int HierarchyLevel)
         {
             var departments = await _repository.GetAllDepartmentsAsync();
-            var managers = await _repository.GetManagersAsync();
+            var managers = await _repository.GetManagersByHierarchyAsync(HierarchyLevel);
 
             var deptList = departments.Select(d => new SelectListItem(d.Name, d.DepartmentId.ToString()));
             var mgrList = managers.Select(m => new SelectListItem(m.FullName, m.ManagerId.ToString()));
@@ -118,7 +128,7 @@ namespace Employee_Management_System.Controllers
             var employee = await _repository.GetEmployeeByIdAsync(id);
             if (employee == null) return NotFound();
 
-            var lookups = await LoadLookupsAsync();
+            var lookups = await LoadLookupsAsync(employee.HierarchyLevel);
 
             employee.DepartmentList = lookups.Depts;
             employee.ManagerList = lookups.Mgrs;
@@ -169,6 +179,23 @@ namespace Employee_Management_System.Controllers
             else
             {
                 TempData["Error"] = $"Deactivation failed for Employee ID {id}.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Employee/Activate/5 (Action to set IsActive=true)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Activate(int id)
+        {
+            bool success = await _repository.ActivateEmployeeAsync(id);
+            if (success)
+            {
+                TempData["Message"] = $"Employee ID {id} has been activated.";
+            }
+            else
+            {
+                TempData["Error"] = $"Activation failed for Employee ID {id}.";
             }
             return RedirectToAction(nameof(Index));
         }

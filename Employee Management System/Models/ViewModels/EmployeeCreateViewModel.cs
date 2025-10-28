@@ -42,7 +42,7 @@ namespace Employee_Management_System.Models.ViewModels
         public IEnumerable<SelectListItem> DepartmentList { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> ManagerList { get; set; } = new List<SelectListItem>();
 
-        public int HiererKeyLevel { get; set; }
+        public int HierarchyLevel { get; set; }
 
         public bool IsActive { get; set; } = true;
     }

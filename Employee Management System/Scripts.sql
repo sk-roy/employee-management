@@ -14,7 +14,7 @@ CREATE TABLE Employee (
     IsActive BIT NOT NULL DEFAULT 1,
     DepartmentId INT,
     ManagerId INT,
-    HiererKeyLevel INT DEFAULT 1,
+    HierarchyLevel INT DEFAULT 1,
     FOREIGN KEY (DepartmentId) REFERENCES Department(DepartmentId),
     FOREIGN KEY (ManagerId) REFERENCES Employee(EmployeeId)
 );

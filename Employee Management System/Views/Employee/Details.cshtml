@@ -37,14 +37,69 @@
         <dd class="col-sm-9">@Model.Salary.ToString("C")</dd>
 
         <dt class="col-sm-3">Department</dt>
-        <dd class="col-sm-9">@Model.DepartmentName</dd>
+        <dd class="col-sm-9">
+            <a asp-action="Details" asp-controller="Department" asp-route-id="@Model.DepartmentId" class="btn btn-sm btn-outline-info">@Model.DepartmentName</a>
+        </dd>
 
         <dt class="col-sm-3">Manager</dt>
-        <dd class="col-sm-9">
-            @(Model.ManagerName != null ? Model.ManagerName : "N/A")
-        </dd>
+        @if (Model.ManagerName != null)
+        {
+            <dd class="col-sm-9">
+                <a asp-action="Details" asp-controller="Employee" asp-route-id="@Model.ManagerId" class="btn btn-sm btn-outline-info">@Model.ManagerName</a>
+            </dd>            
+        }
+        @if (Model.ManagerName == null)
+        {
+            <dd class="col-sm-9">
+                N/A
+            </dd>
+        }
     </dl>
 </div>
+
+<hr />
+
+<h3>Direct Reports (@Model.DirectReports.Count())</h3>
+
+@if (Model.DirectReports.Any())
+{
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var report in Model.DirectReports)
+            {
+                <tr>
+                    <td>@report.FirstName @report.LastName</td>
+                    <td>@report.Email</td>
+                    <td>
+                        <dd class="col-sm-9">
+                            <span class="badge @(report.IsActive ? "bg-success" : "bg-danger")">
+                                @(report.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </dd>
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@report.EmployeeId" class="btn btn-sm btn-outline-info">View Report</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>This employee currently has no direct reports.</p>
+}
+
+<hr />
+
 <div class="mt-4">
     <a asp-action="Edit" asp-route-id="@Model.EmployeeId" class="btn btn-warning">Edit</a>
 
@@ -55,6 +110,15 @@
                 Deactivate Employee
             </button>
         </form>
+    }
+    @if (!Model.IsActive)
+    {
+        <form asp-action="Activate" asp-route-id="@Model.EmployeeId" method="post" class="d-inline">
+            <button type="submit" class="btn btn-success" onclick="return confirm('Confirm activation for this employee?');">
+                Activate Employee
+            </button>
+        </form>
+
     }
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>

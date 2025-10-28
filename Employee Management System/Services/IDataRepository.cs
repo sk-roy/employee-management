@@ -10,8 +10,11 @@ namespace Employee_Management_System.Services
         Task<EmployeeViewModel> GetEmployeeByIdAsync(int id);
         Task<bool> UpdateEmployeeAsync(EmployeeViewModel model);
         Task<bool> DeactivateEmployeeAsync(int id);
+        Task<bool> ActivateEmployeeAsync(int id);
         Task<IEnumerable<EmployeeViewModel>> GetEmployeesByDepartmentAsync(int departmentId);
-        Task<IEnumerable<Employee>> GetManagersAsync();
+        Task<IEnumerable<Employee>> GetAllManagersAsync();
+        Task<IEnumerable<Employee>> GetManagersByHierarchyAsync(int HierarchyLevel);
+        Task<IEnumerable<Employee>> GetDirectReportsAsync(int managerId);
 
         Task<IEnumerable<Department>> GetAllDepartmentsAsync();
         Task<Department> GetDepartmentByIdAsync(int id);

@@ -12,7 +12,6 @@ namespace Employee_Management_System.Models.ViewModels
         public decimal Budget { get; set; }
         public decimal Spent { get; set; }
 
-        // Navigation property for related Employees
-        public ICollection<EmployeeViewModel> Employees { get; set; }
+        public IEnumerable<EmployeeViewModel> Employees { get; set; } = new List<EmployeeViewModel>();
     }
 }

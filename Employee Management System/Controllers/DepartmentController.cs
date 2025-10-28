@@ -1,5 +1,7 @@
 ﻿using Employee_Management_System.Models;
 using Employee_Management_System.Services;
+using Employee_Management_System.Utilities;
+using Employee_Management_System.Utilities.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Employee_Management_System.Controllers
@@ -34,37 +36,42 @@ namespace Employee_Management_System.Controllers
             {
                 return NotFound();
             }
-            return View(department);
+
+            var viewModel = department.ToDepartmentViewModel();
+            viewModel.Employees = await _repository.GetEmployeesByDepartmentAsync(id);
+
+            return View(viewModel);
         }
 
         // GET: /Department/Create
         public IActionResult Create()
         {
-            return View(); // Returns the empty Create.cshtml view
+            return View();
         }
 
         // POST: /Department/Create (Add Department)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Budget")] Department department)
+        public async Task<IActionResult> Create([Bind("Name,Budget,Spent")] Department department)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // Calls the SP_AddDepartment stored procedure
                     int newId = await _repository.AddDepartmentAsync(department);
-
-                    // Redirect to the list view or details view of the new department
                     return RedirectToAction(nameof(Index));
+                }
+                catch (BudgetExceededException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                    return View(department);
                 }
                 catch (System.Exception ex)
                 {
-                    // Log the error (e.g., database connection failure, SP error)
                     ModelState.AddModelError("", "Unable to save changes. Please try again. Error: " + ex.Message);
                 }
             }
-            // If model state is invalid or exception occurred, return the view with the current model
+
             return View(department);
         }
 
@@ -87,7 +94,7 @@ namespace Employee_Management_System.Controllers
         // POST: /Department/Edit/5 (Update Department)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("DepartmentId,Name,Budget")] Department department)
+        public async Task<IActionResult> Edit(int id, [Bind("DepartmentId,Name,Budget,Spent")] Department department)
         {
             if (id != department.DepartmentId)
             {
@@ -108,6 +115,11 @@ namespace Employee_Management_System.Controllers
                     {
                         ModelState.AddModelError("", "Department not found or update failed.");
                     }
+                }
+                catch (BudgetExceededException ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                    return View(department);
                 }
                 catch (System.Exception ex)
                 {

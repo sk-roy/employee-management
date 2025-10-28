@@ -9,10 +9,6 @@ namespace Employee_Management_System.Utilities
     {
         public static Employee ToEmployeeModel(this EmployeeViewModel viewModel)
         {
-            // Note: We intentionally skip mapping navigation properties (Department, Manager)
-            // as the Model is typically used for database operations via Dapper, 
-            // and the FKs (DepartmentId, ManagerId) are sufficient.
-
             return new Employee
             {
                 EmployeeId = viewModel.EmployeeId,
@@ -22,9 +18,21 @@ namespace Employee_Management_System.Utilities
                 HireDate = viewModel.HireDate,
                 Salary = viewModel.Salary,
                 IsActive = viewModel.IsActive,
-                HiererKeyLevel = viewModel.HiererKeyLevel,
+                IsManager = viewModel.IsManager,
+                HierarchyLevel = viewModel.HierarchyLevel,
                 DepartmentId = viewModel.DepartmentId,
                 ManagerId = viewModel.ManagerId
+            };
+        }
+
+        public static DepartmentViewModel ToDepartmentViewModel(this Department department)
+        {
+            return new DepartmentViewModel
+            {
+                DepartmentId = department.DepartmentId,
+                DepartmentName = department.Name,
+                Budget = department.Budget,
+                Spent = department.Spent
             };
         }
     }

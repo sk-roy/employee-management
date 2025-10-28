@@ -38,7 +38,11 @@ namespace Employee_Management_System.Services
                 {
                     var manager = await GetEmployeeByIdAsync((int)model.ManagerId);
                     parameters.Add("@ManagerId", model.ManagerId);
-                    parameters.Add("@HiererKeyLevel", manager.HiererKeyLevel + 1);
+                    parameters.Add("@HierarchyLevel", manager.HierarchyLevel + 1);
+                }
+                else
+                {
+                    parameters.Add("@HierarchyLevel", 0);
                 }
 
                 var newId = await connection.ExecuteScalarAsync<int>(
@@ -76,7 +80,7 @@ namespace Employee_Management_System.Services
                 parameters.Add("@DepartmentId", model.DepartmentId);
                 parameters.Add("@ManagerId", model.ManagerId);
                 parameters.Add("@IsManager", model.IsManager);
-                parameters.Add("@HiererKeyLevel", model.HiererKeyLevel);
+                parameters.Add("@HierarchyLevel", model.HierarchyLevel);
                 parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
                 await connection.ExecuteAsync(
@@ -127,6 +131,36 @@ namespace Employee_Management_System.Services
             }
         }
 
+        // DeactivateEmployee
+        public async Task<bool> ActivateEmployeeAsync(int id)
+        {
+            try
+            {
+                await using var connection = new SqlConnection(_connectionString);
+                var parameters = new DynamicParameters();
+                parameters.Add("@EmployeeId", id);
+
+                parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                await connection.ExecuteAsync(
+                    "dbo.SP_ActivateEmployee",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                int rowsAffected = parameters.Get<int>("@ReturnValue");
+                return rowsAffected > 0;
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("Employee salary exceeds"))
+                {
+                    throw new BudgetExceededException(ex.Message);
+                }
+                throw new Exception();
+            }
+        }
+
         // GetEmployeeById
         public async Task<EmployeeViewModel> GetEmployeeByIdAsync(int id)
         {
@@ -156,18 +190,28 @@ namespace Employee_Management_System.Services
                 commandType: CommandType.StoredProcedure
             );
 
-            // GroupBy is not strictly necessary here, but ensures unique employees if the SP were complex
             return employees.GroupBy(e => e.EmployeeId).Select(g => g.First());
         }
 
         // GetManagers (Used for Edit/Create dropdowns)
-        public async Task<IEnumerable<Employee>> GetManagersAsync()
+        public async Task<IEnumerable<Employee>> GetAllManagersAsync()
         {
             await using var connection = new SqlConnection(_connectionString);
 
-            // Maps EmployeeId, FirstName, and LastName directly to ManagerInfo
             return await connection.QueryAsync<Employee>(
-                "dbo.SP_GetManagers",
+                "dbo.SP_GetAllManagers",
+                commandType: CommandType.StoredProcedure
+            );
+        }
+        public async Task<IEnumerable<Employee>> GetManagersByHierarchyAsync(int HierarchyLevel)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@HierarchyLevel", HierarchyLevel);
+
+            return await connection.QueryAsync<Employee>(
+                "dbo.SP_GetManagersByHierarchy",
+                parameters,
                 commandType: CommandType.StoredProcedure
             );
         }
@@ -184,16 +228,27 @@ namespace Employee_Management_System.Services
 
             return employees;
         }
+        public async Task<IEnumerable<Employee>> GetDirectReportsAsync(int managerId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@ManagerId", managerId);
+
+            return await connection.QueryAsync<Employee>(
+                "dbo.SP_GetDirectReports",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
 
 
         // --- Department CRUD Implementations ---
-
         public async Task<IEnumerable<Department>> GetAllDepartmentsAsync()
         {
             await using var connection = new SqlConnection(_connectionString);
 
             var departments = await connection.QueryAsync<Department>(
-                "dbo.SP_GetAllDepartments", // Stored Procedure Name
+                "dbo.SP_GetAllDepartments",
                 commandType: CommandType.StoredProcedure
             );
 
@@ -216,45 +271,68 @@ namespace Employee_Management_System.Services
 
         public async Task<int> AddDepartmentAsync(Department department)
         {
-            await using var connection = new SqlConnection(_connectionString);
-            var parameters = new DynamicParameters();
-            parameters.Add("@Name", department.Name);
-            parameters.Add("@Budget", department.Budget);
+            try
+            {
+                await using var connection = new SqlConnection(_connectionString);
+                var parameters = new DynamicParameters();
+                parameters.Add("@Name", department.Name);
+                parameters.Add("@Budget", department.Budget);
 
-            var newId = await connection.ExecuteScalarAsync<int>(
-                "dbo.SP_AddDepartment",
-                parameters,
-                commandType: CommandType.StoredProcedure
-            );
+                var newId = await connection.ExecuteScalarAsync<int>(
+                    "dbo.SP_AddDepartment",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return newId;
+                return newId;
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("Operation aborted"))
+                {
+                    throw new BudgetExceededException(ex.Message);
+                }
+                throw new Exception();
+            }
         }
 
         public async Task<bool> UpdateDepartmentAsync(Department department)
         {
-            await using var connection = new SqlConnection(_connectionString);
-            var parameters = new DynamicParameters();
+            try
+            {
+                await using var connection = new SqlConnection(_connectionString);
+                var parameters = new DynamicParameters();
 
-            parameters.Add("@DepartmentId", department.DepartmentId);
-            parameters.Add("@Name", department.Name);
-            parameters.Add("@Budget", department.Budget);
-            parameters.Add("@Spent", department.Spent);
+                parameters.Add("@DepartmentId", department.DepartmentId);
+                parameters.Add("@Name", department.Name);
+                parameters.Add("@Budget", department.Budget);
+                //parameters.Add("@Spent", department.Spent);
 
-            parameters.Add(
-                "@ReturnValue",
-                dbType: DbType.Int32,
-                direction: ParameterDirection.ReturnValue
-            );
+                parameters.Add(
+                    "@ReturnValue",
+                    dbType: DbType.Int32,
+                    direction: ParameterDirection.ReturnValue
+                );
 
-            await connection.ExecuteAsync(
-                "dbo.SP_UpdateDepartment",
-                parameters,
-                commandType: CommandType.StoredProcedure
-            );
+                await connection.ExecuteAsync(
+                    "dbo.SP_UpdateDepartment",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            int rowsAffected = parameters.Get<int>("@ReturnValue");
+                int rowsAffected = parameters.Get<int>("@ReturnValue");
 
-            return rowsAffected > 0;
+                return rowsAffected > 0;
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("Operation aborted"))
+                {
+                    throw new BudgetExceededException(ex.Message);
+                }
+                throw new Exception();
+            }
+
         }
     }
 }
