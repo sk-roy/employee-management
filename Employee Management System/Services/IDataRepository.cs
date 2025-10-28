@@ -22,5 +22,20 @@ namespace Employee_Management_System.Services
         Task<int> AddDepartmentAsync(Department department);
         Task<bool> UpdateDepartmentAsync(Department department); 
         Task<IEnumerable<OrganizationHierarchy>> GetOrganizationHierarchyAsync();
+
+        // Project
+        Task<IEnumerable<Project>> GetAllProjectsAsync();
+        Task<Project> GetProjectByIdAsync(int id);
+        Task<int> AddProjectAsync(Project project);
+        Task<bool> UpdateProjectAsync(Project project);
+
+        // Project Allocation Methods
+        Task<IEnumerable<Project>> GetProjectsByEmployeeIdAsync(int employeeId);
+        Task<IEnumerable<ProjectOverlapModel>> FindOverlappingProjectsAsync(); 
+        Task<IEnumerable<Employee>> GetUnassignedEmployeesForProjectAsync(int projectId); 
+        Task<IEnumerable<Project>> GetUnassignedProjectsForEmployeeAsync(int employeeId);
+        Task<bool> AssignEmployeeToProjectAsync(int employeeId, int projectId); 
+        Task<IEnumerable<Employee>> GetEmployeesByProjectIdAsync(int projectId);
+        Task<bool> UnassignEmployeeFromProjectAsync(int employeeId, int projectId);
     }
 }

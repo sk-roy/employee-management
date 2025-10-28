@@ -29,10 +29,13 @@ namespace Employee_Management_System.Controllers
         // GET: EmployeeController/Details/5
         public async Task<ActionResult> Details(int id)
         {
-            var employee = await _repository.GetEmployeeByIdAsync(id);
+            var employee = await _repository.GetEmployeeByIdAsync(id); 
+            if (employee == null) return NotFound();
+
             employee.DirectReports = await _repository.GetDirectReportsAsync(id);
-            employee.AllReports = await _repository.GetAllReportsAsync(id);
-            
+            employee.AllReports = await _repository.GetAllReportsAsync(id);            
+            employee.Projects = await _repository.GetProjectsByEmployeeIdAsync(id);
+
             return View(employee);
         }
 

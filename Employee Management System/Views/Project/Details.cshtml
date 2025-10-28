@@ -1,0 +1,134 @@
+﻿@model Employee_Management_System.Models.ViewModels.ProjectDetailsViewModel
+
+@{
+    ViewData["Title"] = "Project Details";
+    var project = Model.Project; 
+    var statuses = new List<string> { "Active", "Completed", "OnHold" };
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Project Details: @project.ProjectName</h1>
+
+    <div class="status-quick-update">
+        <form asp-action="QuickStatusUpdate" method="post" class="d-flex" onsubmit="return confirm('Confirm status change to the selected value?');">
+
+            <input type="hidden" name="projectId" value="@project.ProjectId" />
+
+            <div class="input-group">
+                <select name="newStatus" class="form-select me-2" style="width: 150px;">
+                    @foreach (var status in statuses)
+                    {
+                        // Pre-select the current status
+                        <option value="@status" selected="@(status == project.Status)">
+                            Set to @status
+                        </option>
+                    }
+                </select>
+
+                <button type="submit" class="btn btn-primary">Update Status</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<hr />
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-4">@Html.DisplayNameFor(model => project.ProjectId)</dt>
+        <dd class="col-sm-8">@Html.DisplayFor(model => project.ProjectId)</dd>
+
+        <dt class="col-sm-4">@Html.DisplayNameFor(model => project.StartDate)</dt>
+        <dd class="col-sm-8">@project.StartDate.ToShortDateString()</dd>
+
+        <dt class="col-sm-4">@Html.DisplayNameFor(model => project.EndDate)</dt>
+        <dd class="col-sm-8">@project.EndDate?.ToShortDateString()</dd>
+
+        <dt class="col-sm-4">@Html.DisplayNameFor(model => project.HoursWorked)</dt>
+        <dd class="col-sm-8">@project.HoursWorked hours</dd>
+        
+        <dt class="col-sm-4">@Html.DisplayNameFor(model => project.Status)</dt>
+        <dd class="col-sm-8">
+            @{
+                string badgeClass = project.Status switch
+                {
+                    "Completed" => "bg-success",
+                    "OnHold" => "bg-warning text-dark",
+                    _ => "bg-secondary",
+                };
+            }
+            <span class="badge @badgeClass">@project.Status</span>
+        </dd>
+    </dl>
+</div>
+
+<hr />
+
+<h3>Assigned Team Members (@Model.AssignedEmployees.Count()) 👥</h3>
+
+@if (Model.AssignedEmployees.Any())
+{
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model.AssignedEmployees)
+            {
+                <tr>
+                    <td>@employee.FirstName @employee.LastName</td>
+                    <td>@employee.Email</td>
+                    <td>
+                        <span class="badge @(employee.IsActive ? "bg-success" : "bg-danger")">
+                            @(employee.IsActive ? "Active" : "Inactive")
+                        </span>
+                    </td>
+                    <td>
+                        <a asp-controller="Employee" asp-action="Details" asp-route-id="@employee.EmployeeId" class="btn btn-sm btn-outline-secondary me-2">View Profile</a>
+
+                        <form asp-controller="Project"
+                              asp-action="UnassignEmployee"
+                              method="post"
+                              class="d-inline"
+                              onsubmit="return confirm('Are you sure you want to unassign @employee.FirstName @employee.LastName from this project?');">
+
+                            <input type="hidden" name="employeeId" value="@employee.EmployeeId" />
+                            <input type="hidden" name="projectId" value="@project.ProjectId" />
+
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Unassign
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p class="text-info">No employees are currently assigned to this project.</p>
+}
+
+
+<div class="mt-4">
+    <a asp-action="Edit" asp-route-id="@project.ProjectId" class="btn btn-warning">Edit Project</a>
+    <a asp-action="AssignEmployees" asp-route-id="@project.ProjectId" class="btn btn-success">
+        ➕ Assign Employees
+    </a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

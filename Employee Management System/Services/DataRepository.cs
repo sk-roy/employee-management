@@ -3,6 +3,7 @@ using Employee_Management_System.Models;
 using Employee_Management_System.Models.ViewModels;
 using Employee_Management_System.Utilities.Exceptions;
 using Microsoft.Data.SqlClient;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 
 namespace Employee_Management_System.Services
@@ -17,7 +18,7 @@ namespace Employee_Management_System.Services
                                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
         }
 
-        // --- Employee CRUD Implementations ---
+        #region Employee CRUD Implementations
 
         // AddEmployee
         public async Task<int> AddEmployeeAsync(Employee model)
@@ -253,8 +254,10 @@ namespace Employee_Management_System.Services
             );
         }
 
+        #endregion Employee CRUD Implementations
 
-        // --- Department CRUD Implementations ---
+
+        #region Department CRUD Implementations
         public async Task<IEnumerable<Department>> GetAllDepartmentsAsync()
         {
             await using var connection = new SqlConnection(_connectionString);
@@ -347,6 +350,10 @@ namespace Employee_Management_System.Services
 
         }
 
+        #endregion Department CRUD Implementations
+
+
+        #region Organization CRUD Implementations
         public async Task<IEnumerable<OrganizationHierarchy>> GetOrganizationHierarchyAsync()
         {
             await using var connection = new SqlConnection(_connectionString);
@@ -356,5 +363,164 @@ namespace Employee_Management_System.Services
                 commandType: CommandType.StoredProcedure
             );
         }
+
+        #endregion Organization CRUD Implementations
+
+
+        #region Project CRUD Operation
+        public async Task<IEnumerable<Project>> GetAllProjectsAsync()
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryAsync<Project>(
+                "dbo.SP_GetAllProjects", 
+                commandType: 
+                CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<Project> GetProjectByIdAsync(int id)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProjectId", id);
+            return await connection.QueryFirstOrDefaultAsync<Project>(
+                "dbo.SP_GetProjectById", 
+                parameters, 
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<int> AddProjectAsync(Project project)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProjectName", project.ProjectName);
+            parameters.Add("@StartDate", project.StartDate);
+            parameters.Add("@EndDate", project.EndDate);
+            parameters.Add("@Status", project.Status);
+            parameters.Add("@HoursWorked", project.HoursWorked);
+
+            var newId = await connection.ExecuteScalarAsync<int>(
+                "dbo.SP_AddProject",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+            return newId;
+        }
+
+        public async Task<bool> UpdateProjectAsync(Project project)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters(project);
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "dbo.SP_UpdateProject", 
+                parameters, 
+                commandType: CommandType.StoredProcedure
+            );
+            int rowsAffected = parameters.Get<int>("@ReturnValue");
+            return rowsAffected > 0;
+        }
+        public async Task<IEnumerable<Project>> GetProjectsByEmployeeIdAsync(int employeeId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@EmployeeId", employeeId);
+
+            return await connection.QueryAsync<Project>(
+                "dbo.SP_GetProjectsByEmployeeId",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<IEnumerable<ProjectOverlapModel>> FindOverlappingProjectsAsync()
+        {
+            await using var connection = new SqlConnection(_connectionString);
+
+            return await connection.QueryAsync<ProjectOverlapModel>(
+                "dbo.SP_FindOverlappingProjects",
+                commandType: CommandType.StoredProcedure
+            );
+        }
+        public async Task<IEnumerable<Employee>> GetUnassignedEmployeesForProjectAsync(int projectId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProjectId", projectId);
+
+            return await connection.QueryAsync<Employee>(
+                "dbo.SP_GetUnassignedEmployeesForProject",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        // Method to fetch projects the employee is NOT currently on
+        public async Task<IEnumerable<Project>> GetUnassignedProjectsForEmployeeAsync(int employeeId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@EmployeeId", employeeId);
+
+            string sql = @"
+                SELECT * FROM Project P
+                WHERE P.ProjectId NOT IN (
+                    SELECT ProjectId FROM EmployeeProject WHERE EmployeeId = @EmployeeId
+                ) AND P.Status = 'Active'";
+
+            return await connection.QueryAsync<Project>(sql, parameters);
+        }
+
+        // Method to insert the assignment record
+        public async Task<bool> AssignEmployeeToProjectAsync(int employeeId, int projectId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@EmployeeId", employeeId);
+            parameters.Add("@ProjectId", projectId);
+
+            int resultCode = await connection.ExecuteScalarAsync<int>(
+                "dbo.SP_AssignEmployeeToProject",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return resultCode == 1;
+        }
+        public async Task<IEnumerable<Employee>> GetEmployeesByProjectIdAsync(int projectId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProjectId", projectId);
+
+            // Maps results to the core Employee Model
+            return await connection.QueryAsync<Employee>(
+                "dbo.SP_GetEmployeesByProjectId",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+        public async Task<bool> UnassignEmployeeFromProjectAsync(int employeeId, int projectId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@EmployeeId", employeeId);
+            parameters.Add("@ProjectId", projectId);
+
+            parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+            await connection.ExecuteAsync(
+                "dbo.SP_UnassignEmployeeFromProject",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            int rowsAffected = parameters.Get<int>("@ReturnValue");
+            return rowsAffected > 0;
+        }
+
+        #endregion Project CRUD Operation
     }
 }

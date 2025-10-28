@@ -1,0 +1,53 @@
+﻿@model IEnumerable<Employee_Management_System.Models.ProjectOverlapModel>
+
+@{
+    ViewData["Title"] = "Project Overlap Analysis";
+}
+
+<h1>⚠️ @ViewData["Title"]</h1>
+<p class="text-danger">The following employee pairs have conflicting project schedules.</p>
+<hr />
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success" role="alert">
+        No schedule conflicts found between active employees and projects!
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Employee 1 (Project)</th>
+                <th>Conflict 1 Dates</th>
+                <th>Employee 2 (Project)</th>
+                <th>Conflict 2 Dates</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@item.Employee1Name</strong><br />
+                        <small>Project: @item.Employee1Project</small>
+                    </td>
+                    <td>
+                        @item.ConflictStart1.ToShortDateString() - @item.ConflictEnd1.ToShortDateString()
+                    </td>
+                    <td>
+                        <strong>@item.Employee2Name</strong><br />
+                        <small>Project: @item.Employee2Project</small>
+                    </td>
+                    <td>
+                        @item.ConflictStart2.ToShortDateString() - @item.ConflictEnd2.ToShortDateString()
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary">Back to Project List</a>
+</div>

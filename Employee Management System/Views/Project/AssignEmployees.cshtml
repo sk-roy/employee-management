@@ -1,0 +1,51 @@
+﻿@model Employee_Management_System.Models.ViewModels.EmployeeAssignmentViewModel
+
+@{
+    ViewData["Title"] = "Assign Employees";
+}
+
+<h1>Assign Employees to Project</h1>
+<hr />
+
+<h4>Project: @Model.ProjectName</h4>
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="AssignEmployees" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="ProjectId" />
+            <input type="hidden" asp-for="ProjectName" />
+
+            <div class="form-group">
+                <label asp-for="SelectedEmployeeIds" class="control-label"></label>
+
+                @if (!Model.AvailableEmployees.Any())
+                {
+                    <p class="text-info mt-2">All active employees are already assigned to this project.</p>
+                }
+                else
+                {
+                    <select asp-for="SelectedEmployeeIds"
+                            asp-items="Model.AvailableEmployees"
+                            class="form-control"
+                            multiple="multiple"
+                            size="10">
+                    </select>
+                }
+                <span asp-validation-for="SelectedEmployeeIds" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">Assign Selected Employees</button>
+                <a asp-action="Details" asp-route-id="@Model.ProjectId" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -70,6 +70,7 @@ namespace Employee_Management_System.Models.ViewModels
         public IEnumerable<SelectListItem> ManagerList { get; set; } = new List<SelectListItem>();
         public IEnumerable<Employee> DirectReports { get; set; } = new List<Employee>();
         public IEnumerable<Employee> AllReports { get; set; } = new List<Employee>();
+        public IEnumerable<Project> Projects { get; set; } = new List<Project>();
 
     }
 }
