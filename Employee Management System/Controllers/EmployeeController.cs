@@ -210,5 +210,19 @@ namespace Employee_Management_System.Controllers
             var employees = await _repository.GetEmployeesByDepartmentAsync(departmentId);
             return View("Index", employees);
         }
+
+        // GET: Employee/AuditHistory/5
+        public async Task<IActionResult> AuditHistory(int id)
+        {
+            var employee = await _repository.GetEmployeeByIdAsync(id);
+            if (employee == null) return NotFound();
+
+            var auditRecords = await _repository.GetAuditTrailAsync(id);
+
+            ViewData["EmployeeName"] = $"{employee.FirstName} {employee.LastName}";
+            ViewData["EmployeeId"] = id;
+
+            return View(auditRecords);
+        }
     }
 }

@@ -36,6 +36,7 @@ namespace Employee_Management_System.Services
         Task<IEnumerable<Project>> GetUnassignedProjectsForEmployeeAsync(int employeeId);
         Task<bool> AssignEmployeeToProjectAsync(int employeeId, int projectId); 
         Task<IEnumerable<Employee>> GetEmployeesByProjectIdAsync(int projectId);
-        Task<bool> UnassignEmployeeFromProjectAsync(int employeeId, int projectId);
+        Task<bool> UnassignEmployeeFromProjectAsync(int employeeId, int projectId); 
+        Task<IEnumerable<EmployeeAuditModel>> GetAuditTrailAsync(int employeeId);
     }
 }

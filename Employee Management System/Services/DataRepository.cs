@@ -522,5 +522,20 @@ namespace Employee_Management_System.Services
         }
 
         #endregion Project CRUD Operation
+
+        public async Task<IEnumerable<EmployeeAuditModel>> GetAuditTrailAsync(int employeeId)
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@EmployeeId", employeeId);
+
+            // Maps results to the new EmployeeAuditModel
+            return await connection.QueryAsync<EmployeeAuditModel>(
+                "dbo.SP_GetAuditTrail",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
     }
 }

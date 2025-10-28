@@ -5,7 +5,11 @@
     ViewData["Title"] = "Employee Details";
 }
 
-<h1>@Model.FirstName @Model.LastName</h1>
+<div class="d-flex justify-content-between align-items-center header-row mb-3">
+    <h1>@Model.FirstName @Model.LastName</h1>
+    <a asp-action="AuditHistory" asp-route-id="@Model.EmployeeId" class="btn btn-info">View Audit History</a>
+</div>
+
 <hr />
 
 <div>
