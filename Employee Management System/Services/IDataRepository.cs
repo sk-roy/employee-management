@@ -19,6 +19,7 @@ namespace Employee_Management_System.Services
         Task<IEnumerable<Department>> GetAllDepartmentsAsync();
         Task<Department> GetDepartmentByIdAsync(int id);
         Task<int> AddDepartmentAsync(Department department);
-        Task<bool> UpdateDepartmentAsync(Department department);
+        Task<bool> UpdateDepartmentAsync(Department department); 
+        Task<IEnumerable<OrganizationHierarchy>> GetOrganizationHierarchyAsync();
     }
 }

@@ -55,7 +55,7 @@ namespace Employee_Management_System.Services
             }
             catch (SqlException ex)
             {
-                if (ex.Message.Contains("Employee salary exceeds"))
+                if (ex.Message.Contains("Operation aborted"))
                 {
                     throw new BudgetExceededException(ex.Message);
                 }
@@ -94,7 +94,7 @@ namespace Employee_Management_System.Services
             }
             catch (SqlException ex)
             {
-                if (ex.Message.Contains("Employee salary exceeds"))
+                if (ex.Message.Contains("Operation aborted"))
                 {
                     throw new BudgetExceededException(ex.Message);
                 }
@@ -123,7 +123,7 @@ namespace Employee_Management_System.Services
             }
             catch (SqlException ex)
             {
-                if (ex.Message.Contains("Employee salary exceeds"))
+                if (ex.Message.Contains("Operation aborted"))
                 {
                     throw new BudgetExceededException(ex.Message);
                 }
@@ -153,7 +153,7 @@ namespace Employee_Management_System.Services
             }
             catch (SqlException ex)
             {
-                if (ex.Message.Contains("Employee salary exceeds"))
+                if (ex.Message.Contains("Operation aborted"))
                 {
                     throw new BudgetExceededException(ex.Message);
                 }
@@ -333,6 +333,16 @@ namespace Employee_Management_System.Services
                 throw new Exception();
             }
 
+        }
+
+        public async Task<IEnumerable<OrganizationHierarchy>> GetOrganizationHierarchyAsync()
+        {
+            await using var connection = new SqlConnection(_connectionString);
+
+            return await connection.QueryAsync<OrganizationHierarchy>(
+                "dbo.SP_GetOrganizationHierarchy",
+                commandType: CommandType.StoredProcedure
+            );
         }
     }
 }
