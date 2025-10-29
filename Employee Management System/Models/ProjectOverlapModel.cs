@@ -4,19 +4,21 @@ namespace Employee_Management_System.Models
 {
     public class ProjectOverlapModel
     {
-        public string Employee1Name { get; set; } = string.Empty;
-        public string Employee2Name { get; set; } = string.Empty;
+        public int EmployeeId { get; set; }
+        public string EmployeeName { get; set; } = string.Empty;
 
-        public string Employee1Project { get; set; } = string.Empty;
-        public string Employee2Project { get; set; } = string.Empty;
+        public string ProjectName1 { get; set; } = string.Empty;
+        public string ProjectName2 { get; set; } = string.Empty;
+        public int ProjectId1 { get; set; }
+        public int ProjectId2 { get; set; }
 
         [DataType(DataType.Date)]
-        public DateTime ConflictStart1 { get; set; }
+        public DateTime StartDateProject1 { get; set; }
         [DataType(DataType.Date)]
-        public DateTime ConflictEnd1 { get; set; }
+        public DateTime EndDateProject1 { get; set; }
         [DataType(DataType.Date)]
-        public DateTime ConflictStart2 { get; set; }
+        public DateTime StartDateProject2 { get; set; }
         [DataType(DataType.Date)]
-        public DateTime ConflictEnd2 { get; set; }
+        public DateTime EndDateProject2 { get; set; }
     }
 }

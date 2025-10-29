@@ -121,7 +121,7 @@ namespace Employee_Management_System.Controllers
             var managers = await _repository.GetManagersByHierarchyAsync(HierarchyLevel);
 
             var deptList = departments.Select(d => new SelectListItem(d.Name, d.DepartmentId.ToString()));
-            var mgrList = managers.Select(m => new SelectListItem(m.FullName, m.ManagerId.ToString()));
+            var mgrList = managers.Select(m => new SelectListItem(m.FullName, m.EmployeeId.ToString()));
 
             return (deptList, mgrList);
         }

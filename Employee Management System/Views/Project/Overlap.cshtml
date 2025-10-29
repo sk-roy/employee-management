@@ -19,10 +19,11 @@ else
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>Employee 1 (Project)</th>
-                <th>Conflict 1 Dates</th>
-                <th>Employee 2 (Project)</th>
-                <th>Conflict 2 Dates</th>
+                <th>Employee Name</th>
+                <th>Project 1 Name</th>
+                <th>Project 2 Name</th>
+                <th>Duration (Project 1)</th>
+                <th>Duration (Project 2)</th>
             </tr>
         </thead>
         <tbody>
@@ -30,19 +31,21 @@ else
             {
                 <tr>
                     <td>
-                        <strong>@item.Employee1Name</strong><br />
-                        <small>Project: @item.Employee1Project</small>
+                        <strong>@item.EmployeeName</strong><br />
                     </td>
                     <td>
-                        @item.ConflictStart1.ToShortDateString() - @item.ConflictEnd1.ToShortDateString()
+                        <strong>@item.ProjectName1</strong><br />
                     </td>
                     <td>
-                        <strong>@item.Employee2Name</strong><br />
-                        <small>Project: @item.Employee2Project</small>
+                        <strong>@item.ProjectName2</strong><br />
                     </td>
                     <td>
-                        @item.ConflictStart2.ToShortDateString() - @item.ConflictEnd2.ToShortDateString()
+                        @item.StartDateProject1.ToShortDateString() - @item.EndDateProject1.ToShortDateString()
                     </td>
+                    <td>
+                        @item.StartDateProject2.ToShortDateString() - @item.EndDateProject1.ToShortDateString()
+                    </td>
+                    <td>
                 </tr>
             }
         </tbody>

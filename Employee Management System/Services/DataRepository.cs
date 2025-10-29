@@ -79,10 +79,15 @@ namespace Employee_Management_System.Services
                 parameters.Add("@HireDate", model.HireDate);
                 parameters.Add("@IsActive", model.IsActive);
                 parameters.Add("@DepartmentId", model.DepartmentId);
-                parameters.Add("@ManagerId", model.ManagerId);
                 parameters.Add("@IsManager", model.IsManager);
-                parameters.Add("@HierarchyLevel", model.HierarchyLevel);
                 parameters.Add("@ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
+
+                if (model.ManagerId != null)
+                {
+                    var manager = await GetEmployeeByIdAsync((int)model.ManagerId);
+                    parameters.Add("@ManagerId", model.ManagerId);
+                    parameters.Add("@HierarchyLevel", manager.HierarchyLevel + 1);
+                }
 
                 await connection.ExecuteAsync(
                     "dbo.SP_UpdateEmployee",

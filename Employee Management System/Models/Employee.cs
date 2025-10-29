@@ -24,7 +24,7 @@ namespace Employee_Management_System.Models
         public decimal Salary { get; set; }
         public bool IsManager { get; set; }
         public bool IsActive { get; set; }
-        public int? HierarchyLevel { get; set; } = 0;
+        public int? HierarchyLevel { get; set; }
 
         public int? DepartmentId { get; set; }
         

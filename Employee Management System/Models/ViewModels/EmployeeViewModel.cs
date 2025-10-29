@@ -41,14 +41,14 @@ namespace Employee_Management_System.Models.ViewModels
         public bool IsActive { get; set; } = true;
 
         [Display(Name = "Hierarchy Level")]
-        public int HierarchyLevel { get; set; } = 0;
+        public int HierarchyLevel { get; set; }
 
         [ForeignKey("DepartmentId")]
         [Display(Name = "Department")]
         public int DepartmentId { get; set; }
 
         [Display(Name = "Manager")]
-        public int? ManagerId { get; set; }
+        public int ManagerId { get; set; }
 
         public string? DepartmentName { get; set; }
 
