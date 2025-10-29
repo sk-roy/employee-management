@@ -4,8 +4,8 @@
     ViewData["Title"] = "Project Overlap Analysis";
 }
 
-<h1>⚠️ @ViewData["Title"]</h1>
-<p class="text-danger">The following employee pairs have conflicting project schedules.</p>
+<h1>@ViewData["Title"]</h1>
+<p class="text-danger">The following project pairs have conflicting on schedules for an Employee.</p>
 <hr />
 
 @if (!Model.Any())
@@ -45,7 +45,6 @@ else
                     <td>
                         @item.StartDateProject2.ToShortDateString() - @item.EndDateProject1.ToShortDateString()
                     </td>
-                    <td>
                 </tr>
             }
         </tbody>

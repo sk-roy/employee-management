@@ -7,7 +7,10 @@
 
 <div class="d-flex justify-content-between align-items-center header-row mb-3">
     <h2>@ViewData["Title"]</h2>
-    <a asp-action="Create" class="btn btn-success">Create New</a>
+    <div>
+        <a asp-action="Index" asp-controller="Organization" class="btn btn-secondary">View Employee Tree</a>
+        <a asp-action="Create" class="btn btn-success">Add New Employee</a>
+    </div>
 </div>
 <hr />
 
